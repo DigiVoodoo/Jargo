@@ -1,0 +1,15 @@
+{{#each .}}
+        <div data-role="page" class="page" id="{{name}}_Page" data-theme="a">
+            <div data-role="header">
+                <h4>Jargo - {{name}}</h4>
+                <a href="#" data-icon="gear" class="optionButton">Options</a>
+            </div>
+            <div data-role="content">
+                <ul id="{{name}}_Container" data-role="listview" data-inset="true" data-filter="true">
+                    {{#categories}}
+						<li><a href="#" class="catButton" id="catButton_{{../name}}_{{@index}}">{{name}}</a></li>
+					{{/categories}}
+                </ul>
+            </div>
+        </div>
+{{/each}}

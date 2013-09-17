@@ -1,0 +1,19 @@
+{{#each .}}
+{{#categories}}
+{{setIndex @index}}
+        <div data-role="page" class="page" id="{{../name}}_{{@index}}_Page" data-theme="a">
+            <div data-role="header">
+				<a href="#" class="backButton" data-icon="arrow-l">Back</a>
+                <h4> Jargo - {{../name}}</h4>
+                <a href="#" data-icon="gear" class="optionButton">Options</a>
+            </div>
+            <div data-role="content">
+                <ul id="{{../name}}_{{@index}}_Container" data-role="listview" data-inset="true" data-filter="true">
+					{{#phrases}}
+						<li><a href="#" class="phraseButton" id="phraseButton_{{../../name}}_{{../index}}_{{@index}}">{{english}}</a></li>
+					{{/phrases}}
+                </ul>
+            </div>
+        </div>
+{{/categories}}
+{{/each}}

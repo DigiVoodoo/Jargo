@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<!--
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+     KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+-->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+        <!-------------------stylesheets------------------------>
+        <link rel="stylesheet" type="text/css" href="css/jquery.mobile-1.3.2.css" />
+        <link rel="stylesheet" type="text/css" href="css/themes/AsterTheme.css" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />        
+        <style>
+            .ui-icon-speechbubble {
+	            background-image: url("./img/icon-speechbubble.png");
+            }
+
+            @media only screen and (-webkit-min-device-pixel-ratio: 2) {
+	            .ui-icon-speechbubble {
+		            background-image: url("./img/icon-speechbubble-highres.png");
+		            background-size: 18px 18px;
+	            }
+            }
+        </style>
+        <!---------------Import External Libraries-------------->
+        <script src="js/lib/jquery-2.0.3.min.js"></script>
+        <script>
+            $(document).bind("mobileinit", function () {
+                $.mobile.defaultPageTransition = 'fade';
+            });
+        </script>
+        <script src="js/lib/jquery.mobile-1.3.2.min.js"></script>
+        <script src="js/lib/handlebars.js"></script>
+        <script src="js/lib/json2.js"></script>
+        <script src="js/lib/fastclick.js"></script>
+        <script type="application/javascript">
+            window.addEventListener('load', function () {
+                FastClick.attach(document.body);
+            }, false);
+        </script> 
+        <!------------------------------------------------------>
+        <title>Jargo</title>
+    </head>
+    <body>
+        <div id="app">
+            <!------------------MainPage-------------------->
+            <div data-role="page" class="page" id="mainPage" data-theme="a">
+                <div data-role="header">
+                    <h4>Jargo</h4>
+                </div>
+                <div data-role="content">
+                    <h1>Welcome</h1>
+                </div>
+            </div> 
+            <!------------------/MainPage-------------------->
+            
+            <!------------------OptionPage-------------------->
+            <div data-role="page" class="page" id="optionPage" data-theme="a">
+                <div data-role="header">
+				    <a href="#" class="backButton" data-icon="arrow-l">Back</a>
+                    <h4>Jargo</h4>
+                </div>
+                <div data-role="content">
+                    <ul data-role="listview" data-inset="true">
+                        <li><a href="#"  class="contactButton">Contact Us</a></li>
+                        <li><a href="#"  class="langButton" id="langMenu">Choose Language</a></li>
+                    </ul>
+                </div>
+            </div>
+            <!------------------/OptionPage-------------------->
+            
+            <!------------------LangMenu-------------------->
+            <div data-role="page" class="page" id="langMenu_Page" data-theme="a">
+                <div data-role="header">
+				    <a href="#" class="backButton" data-icon="arrow-l">Back</a>
+                    <h4>Jargo - Languages</h4>
+                </div>
+                <div data-role="content">
+                    <ul id="LanguageList" data-role="listview" data-inset="true" data-filter="true">
+                    </ul>
+                </div>
+            </div>
+            <!------------------/LangMenu-------------------->
+
+            <!------------------contactPage-------------------->
+            <div data-role="page" class="page" id="contact_Page" data-theme="a">
+                <div data-role="header">
+				    <a href="#" class="backButton" data-icon="arrow-l">Back</a>
+                    <h4>Jargo - Contact Us</h4>
+                </div>
+                <div data-role="content">
+                    <ul id="contactForm" data-role="listview" data-inset="true">
+					    <li data-role="list-divider"> </li>
+
+                        <li>
+                            <form id="emailForm"
+                                  action="" 
+                                  method="POST" 
+                                  data-ajax="false"
+                                  onsubmit="return checkEmail(this)">
+                                <div class="contactForm-Email" data-role="fieldcontain">
+                                    <label for="name">Your Name: </label>  
+                                    <input type="text" name="name" id="nameField" value="" placeholder="Joe" />
+                                </div>
+                                <div class="contactForm-Email" data-role="fieldcontain">
+                                    <label for="name">Your Email: </label>  
+                                    <input type="email" name="email" id="email1" value="" placeholder="Joe@Bloggs.Com" />
+                                </div>
+                                <div class="contactForm-Subject" data-role="fieldcontain">
+                                    <label for="subject">Subject: </label>  
+                                    <input type="text" name="subject" id="subjectField" value="" placeholder="I like your App" />
+                                </div> 
+                                <div class="contactForm-Message" data-role="fieldcontain">
+                                    <label for="message">Message: </label>  
+                                    <input type="text" name="message" id="messageField" value="" placeholder="Do you make any other Apps?" />
+                                </div> 
+                                <div class="contactForm-Submit" data-role="fieldcontain" data-theme="b">
+                                    <input type="submit" value="Submit"/>
+                                </div> 
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <!------------------/contactPage-------------------->
+            
+            <!-------------------contactThankyouPage-------------------->
+            <div data-role="page" class="page" id="contact_thankyou_Page" data-theme="a">
+                <div data-role="header">
+                    <h4>Jargo - Languages</h4>
+                </div>
+                <div data-role="content">
+                    <ul id="thankyouMessage" data-role="listview" data-inset="true">
+					    <li data-role="list-divider"> </li>
+                            
+                        <li>
+                            <p>Thankyou for getting in touch</p>
+                        </li>
+                        <li>
+                            <a href="" class="contactForm-Done">Return</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <!------------------/contactThankyouPage-------------------->
+
+        </div>
+
+        <!-----------------------Import js Files---------------->
+        <script type="text/javascript" src="phonegap.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+        <script type="text/javascript" src="js/languages.js"></script>
+        <script type="text/javascript" src="js/extensions.js"></script>
+        <script type="text/javascript" src="js/templates.js"></script>
+        <script type="text/javascript" src="js/handlebarsHelpers.js"></script>
+        <script type="text/javascript" src="js/contactForm.js"></script>
+        <script type="text/javascript">
+            app.initialize();
+            languages.initialize();
+            contactForm.initialize();
+        </script>
+        <!------------------------------------------------------>
+    </body>
+</html>
