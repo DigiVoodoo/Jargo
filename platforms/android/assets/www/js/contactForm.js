@@ -81,7 +81,7 @@ function submitEmail(formContents) {
 
         },
         error: function (jqXHR, textStatus, errorThrown) {
-            console.log("emailError = " + errorThrown);
+            console.log("emailError = " + textStatus + " " + errorThrown);
         },
         complete: function (jqXHR, textStatus) {
             console.log("emailComplete");

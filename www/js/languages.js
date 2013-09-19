@@ -2,6 +2,10 @@ var languages = {
     // Application Constructor
     initialize: function() {
         this.bindEvents();
+        $.when(checkUpdates()).
+            done(function () {
+                window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, onFileSystemSuccess, Fail);
+            });
     },
     // Bind Event Listeners
     //
@@ -17,7 +21,6 @@ var languages = {
     onDeviceReady: function() {
         languages.receivedEvent('deviceready');
         $.mobile.loading('show');
-        window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, onFileSystemSuccess, Fail);
         CurrentLanguage = window.localStorage.getItem("currentLanguage");
         if (CurrentLanguage == null) CurrentLanguage = "Polish";
         //var appLocation = "file://" + window.location.pathname.replace("/index.html", '');
@@ -229,7 +232,7 @@ function BindLinkEvents() {
 
     $(".contactForm-Done").each(function () {
         $(this).on('touchend', function () {
-            Page("optionPage");
+            history.back();
         });
     });
 
@@ -247,4 +250,76 @@ function Fail(error) {
 
 function OutPut(obj) {
     console.log(obj);
+}
+
+function checkUpdates() {
+    var deferred = $.Deferred();
+    if (checkConnection) {
+        console.log("Connection Found, updating");
+        $.when(ReadLangsFromServer()).
+            then(WriteLangsToFile()).
+            done(function () {
+                console.log("finished writing langs to file");
+                deferred.resolve();
+            });
+    } else {
+        console.log("Connection not Found, skipping updates");
+        deferred.resolve();
+    }
+    return deferred.promise();
+}
+var ReadLangDeferred;
+function ReadLangsFromServer() {
+    ReadLangDeferred = $.Deferred();
+    console.log("reading langs from server");
+
+
+    $.ajax({
+        url: 'http://www.sovatest.netai.net/updatelangs.php',
+        contentType: 'application/jsonp',
+        dataType: "jsonp",
+        type: "GET",
+        crossDomain: true,
+        jsonpCallback: "ReadLangCallback",
+        success: function (data) {
+            console.log("langRequest Success");
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log("langRequest Error = " + textStatus + " " + errorThrown);
+        },
+        complete: function (jqXHR, textStatus) {
+            console.log("langRequest Complete");
+        }
+    });
+    return ReadLangDeferred.promise();
+}
+
+function ReadLangCallback(onlineLanguageData) {
+    console.log("langRequest callback");
+    console.log(onlineLanguageData);
+    ReadLangDeferred.resolve(onlineLanguageData);
+}
+
+function WriteLangsToFile(onlineLanguageData) {
+    var deferred = $.Deferred();
+
+    console.log("writing langs to file");
+    deferred.resolve();
+    return deferred.promise();
+}
+
+function checkConnection() {
+    var networkState = navigator.connection.type;
+
+    //var states = {};
+    //states[Connection.UNKNOWN] = 'Unknown connection';
+    //states[Connection.ETHERNET] = 'Ethernet connection';
+    //states[Connection.WIFI] = 'WiFi connection';
+    //states[Connection.CELL_2G] = 'Cell 2G connection';
+    //states[Connection.CELL_3G] = 'Cell 3G connection';
+    //states[Connection.CELL_4G] = 'Cell 4G connection';
+    //states[Connection.CELL] = 'Cell generic connection';
+    //states[Connection.NONE] = 'No network connection';
+
+    return networkState != Connection.NONE;
 }

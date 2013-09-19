@@ -23,6 +23,9 @@
     <feature name="SplashScreen">
         <param name="android-package" value="org.apache.cordova.splashscreen.SplashScreen" />
     </feature>
+    <feature name="NetworkStatus">
+        <param name="android-package" value="org.apache.cordova.networkinformation.NetworkManager" />
+    </feature>
     <access origin="http://127.0.0.1*" />
     <access origin="http://www.sovatest.netai.net/*" />
     <preference name="useBrowserHistory" value="true" />
