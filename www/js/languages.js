@@ -2,6 +2,7 @@ var languages = {
     // Application Constructor
     initialize: function() {
         this.bindEvents();
+        InitLanguages(true);
     },
     // Bind Event Listeners
     //
@@ -17,7 +18,6 @@ var languages = {
     onDeviceReady: function() {
         languages.receivedEvent('deviceready');
         $.mobile.loading('show');
-        InitLanguages(true);
         CurrentLanguage = window.localStorage.getItem("currentLanguage");
         if (CurrentLanguage == null) CurrentLanguage = "Polish";
         //var appLocation = "file://" + window.location.pathname.replace("/index.html", '');
@@ -272,7 +272,7 @@ function checkUpdates(startup) {
         $.when(ReadLangsFromServer()).
             done(function (langsFromServer) {
                 if (langsFromServer != false) {
-                    $.when(WriteLangsToFile()).
+                    $.when(WriteLangsToFile(langsFromServer)).
                         done(function () {
                             console.log("finished writing langs to file");
                             deferred.resolve(true);
@@ -293,7 +293,6 @@ var ReadLangDeferred;
 function ReadLangsFromServer() {
     ReadLangDeferred = $.Deferred();
     console.log("reading langs from server");
-
 
     $.ajax({
         url: 'http://www.sovatest.netai.net/updatelangs.php',
@@ -324,14 +323,16 @@ function ReadLangSuccess(data) {
 
 function ReadLangCallback(onlineLanguageData) {
     console.log("langRequest callback");
-    var reg1 = new RegExp('"[', 'g');
-    var reg2 = new RegExp(']"', 'g');
-    var reg3 = new RegExp('[]', 'g');
-    var jsonStr = onlineLanguageData.replace(reg1, '[').
-                                     replace(reg2, ']').
+    var reg1 = new RegExp('":"', 'g');
+    var reg2 = new RegExp('\\]"', 'g');
+    var reg3 = new RegExp('\\[\\]', 'g');
+    var jsonStr = onlineLanguageData.
+                                     replace(/\uFEFF/g, '').
                                      replace(reg3, '{}');
     console.log(jsonStr);
-    ReadLangDeferred.resolve(onlineLanguageData);
+    var jsonData = JSON.parse(jsonStr);
+    console.log("Parsed JSON from server");
+    ReadLangDeferred.resolve(jsonData);
 }
 
 function ReadLangError(jqXHR, textStatus, errorThrown) {
@@ -348,14 +349,25 @@ function WriteLangsToFile(onlineLanguageData) {
     if (onlineLanguageData == false) {
         console.log("no languagedata");
         deferred.resolve();
+    } else {
+        console.log("writing langs to file");
+        $.each(onlineLanguageData, function (LangName, lang) {
+            if (typeof (lang) == "object") {
+                $.each(lang, function (catName, catContents) {
+                    var fileLocation = "Lang/" + LangName + "/";
+                    var fileName = catName;
+
+                    WriteFile(fileLocation, fileName, catContents);
+                });
+            }
+        });
+        deferred.resolve();
     }
-    console.log("writing langs to file");
-    deferred.resolve();
     return deferred.promise();
 }
 
 function checkConnection() {
-    var networkState = navigator.connection.type;
+    //var networkState = navigator.connection.type;
 
     //var states = {};
     //states[Connection.UNKNOWN] = 'Unknown connection';
@@ -367,5 +379,60 @@ function checkConnection() {
     //states[Connection.CELL] = 'Cell generic connection';
     //states[Connection.NONE] = 'No network connection';
 
-    return networkState != Connection.NONE;
+    return true;
+}
+
+function WriteFile(fileLocation, fileName, content) {
+    var localFileLocation = fileLocation + fileName;
+    console.log("writing content to " + localFileLocation);
+
+    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, 
+        function (fileSystem) {
+            $.when(createDir(fileSystem.root, localFileLocation.split('/'))).
+                done(function () {
+                    console.log("created directory" + localFileLocation);
+
+                });
+        },
+        function () {
+        });
+
+}
+
+function createDir(rootDirEntry, folders) {
+    var deferred = $.Deferred();
+    // Throw out './' or '/' and move on to prevent something like '/foo/.//bar'.
+    if (folders[0] == '.' || folders[0] == '') {
+        folders = folders.slice(1);
+    }
+    rootDirEntry.getDirectory(folders[0], { create: true }, function (dirEntry) {
+        // Recursively add the new subfolder (if we still have another to create).
+        if (folders.length) {
+            console.log("creating Directory " + dirEntry);
+            createDir(dirEntry, folders.slice(1));
+        } else {
+            deferred.resolve();
+        }
+    }, errorHandler);
+    return deferred.promise();
+}
+
+function fileNameFromURI(filePath) {
+    var fileName = filePath.split('/');
+    return fileName[fileName.length - 1];
+}
+
+function pathFromURI(filePath) {
+    var path = filePath.split('.net');
+    path = path[path.length-1];
+    path = path.split('/');
+    path.pop();
+    path = path.join('/');
+
+    return path;
+}
+
+
+function recursiveCreatDir(rootDirEntry, folders) {
+
 }
