@@ -2,10 +2,6 @@ var languages = {
     // Application Constructor
     initialize: function() {
         this.bindEvents();
-        $.when(checkUpdates()).
-            done(function () {
-                window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, onFileSystemSuccess, Fail);
-            });
     },
     // Bind Event Listeners
     //
@@ -21,6 +17,7 @@ var languages = {
     onDeviceReady: function() {
         languages.receivedEvent('deviceready');
         $.mobile.loading('show');
+        InitLanguages(true);
         CurrentLanguage = window.localStorage.getItem("currentLanguage");
         if (CurrentLanguage == null) CurrentLanguage = "Polish";
         //var appLocation = "file://" + window.location.pathname.replace("/index.html", '');
@@ -37,6 +34,16 @@ var CurrentLanguage;
 var LanguagesAlreadyLoaded = false;
 var AppRootFolder;
 var MediaPlayer;
+
+function InitLanguages(startup) {
+    $.when(checkUpdates(startup)).
+        done(function (shouldUpdate) {
+            console.log("Should Update:" + shouldUpdate);
+            if (shouldUpdate) {
+                window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, onFileSystemSuccess, Fail);
+            }
+        });
+}
 
 function PlayAudio(src) {
     // Prepends any additional path information
@@ -242,6 +249,12 @@ function BindLinkEvents() {
         });
     });
 
+    $(".updateButton").each(function () {
+        $(this).on('touchend', function () {
+            InitLanguages(false);
+        });
+    });
+
 }
 
 function Fail(error) {
@@ -252,19 +265,27 @@ function OutPut(obj) {
     console.log(obj);
 }
 
-function checkUpdates() {
+function checkUpdates(startup) {
     var deferred = $.Deferred();
-    if (checkConnection) {
+    if (checkConnection()) {
         console.log("Connection Found, updating");
         $.when(ReadLangsFromServer()).
-            then(WriteLangsToFile()).
-            done(function () {
-                console.log("finished writing langs to file");
-                deferred.resolve();
+            done(function (langsFromServer) {
+                if (langsFromServer != false) {
+                    $.when(WriteLangsToFile()).
+                        done(function () {
+                            console.log("finished writing langs to file");
+                            deferred.resolve(true);
+                        });
+                } else {
+                    console.log("no languages found on server");
+                    deferred.resolve(false);
+                }
             });
     } else {
         console.log("Connection not Found, skipping updates");
-        deferred.resolve();
+        console.log("Startup:" + startup);
+        deferred.resolve(startup);
     }
     return deferred.promise();
 }
@@ -280,12 +301,15 @@ function ReadLangsFromServer() {
         dataType: "jsonp",
         type: "GET",
         crossDomain: true,
-        jsonpCallback: "ReadLangCallback",
-        success: function (data) {
+        jsonpCallback:  "ReadLangCallback",
+        success: function (data, textStatus, jqXHR) {
             console.log("langRequest Success");
+
         },
         error: function (jqXHR, textStatus, errorThrown) {
-            console.log("langRequest Error = " + textStatus + " " + errorThrown);
+            console.log("langRequest Status = " + textStatus);
+            console.log("error = " + errorThrown);
+            ReadLangDeferred.resolve(false);
         },
         complete: function (jqXHR, textStatus) {
             console.log("langRequest Complete");
@@ -294,15 +318,37 @@ function ReadLangsFromServer() {
     return ReadLangDeferred.promise();
 }
 
+function ReadLangSuccess(data) {
+    console.log("langRequest Success");
+}
+
 function ReadLangCallback(onlineLanguageData) {
     console.log("langRequest callback");
-    console.log(onlineLanguageData);
+    var reg1 = new RegExp('"[', 'g');
+    var reg2 = new RegExp(']"', 'g');
+    var reg3 = new RegExp('[]', 'g');
+    var jsonStr = onlineLanguageData.replace(reg1, '[').
+                                     replace(reg2, ']').
+                                     replace(reg3, '{}');
+    console.log(jsonStr);
     ReadLangDeferred.resolve(onlineLanguageData);
+}
+
+function ReadLangError(jqXHR, textStatus, errorThrown) {
+    console.log("langRequest Status = " + textStatus); 
+    console.log("error = " + errorThrown);
+}
+
+function ReadLangComplete(jqXHR, textStatus) {
+    console.log("langRequest Complete");
 }
 
 function WriteLangsToFile(onlineLanguageData) {
     var deferred = $.Deferred();
-
+    if (onlineLanguageData == false) {
+        console.log("no languagedata");
+        deferred.resolve();
+    }
     console.log("writing langs to file");
     deferred.resolve();
     return deferred.promise();
